@@ -120,7 +120,8 @@ endif
 
 if HAVE_PTHREADS
 check_PROGRAMS += \
-    mt_a2a
+    mt_a2a \
+    mt_puts
 endif
 
 TESTS = $(check_PROGRAMS)

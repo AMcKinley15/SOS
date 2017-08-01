@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#export CUSTOM_SHMEM_DIR="<SOS_INSTALL_DIRECTORY>"
-#export CRAY_TESTS_DIR="<CRAY_TESTS_SRC_DIRECTORY"
+export CUSTOM_SHMEM_DIR=~/Libs/sos
+export CRAY_TESTS_DIR=~/Libs/tests-cray
 export CC=oshcc
 export CXX=oshCC
 export FTN=oshfort
