@@ -21,8 +21,8 @@ static void * thread_main(void *arg) {
 	int tid = * (int *) arg;
 	int i, val, expected;
 
-	val = tid;
-	int val2 = tid+1;
+	val = 1;
+	int val2 = 2;
 
  	shmem_int_put(&dest[tid], &val2, 1, (me + 1) % npes);
 
@@ -30,21 +30,21 @@ static void * thread_main(void *arg) {
  	if(0 == tid)
  	{
 		shmem_fence();
-		shmem_quiet();
+	    shmem_quiet();
 	}
 	pthread_barrier_wait(&fencebar);
 
- 	shmem_int_put(&dest[tid], &val, 1, (me + 2) % npes);
+ 	shmem_int_put(&dest[tid], &val, 1, (me + 1) % npes);
 
 	pthread_barrier_wait(&fencebar);
 	if (0 == tid) shmem_barrier_all();
 	pthread_barrier_wait(&fencebar);
 	
-	expected = tid;
+	expected = 1;
 
 	if(dest[tid] != expected)
 	{
-		printf("Put/get test error: [PE = %d | TID = %d] -- From PE %d, got %d expected %d\n",me, tid, (me + 2) % npes, dest[tid], expected);
+		printf("Put/get test error: [PE = %d | TID = %d] -- From PE %d, got %d expected %d\n",me, tid, (me + 1) % npes, dest[tid], expected);
 		pthread_mutex_lock(&mutex);
 		++errors;
 		pthread_mutex_unlock(&mutex);
@@ -100,10 +100,13 @@ int main(int argc, char **argv) {
 			shmem_int_get(&e, &errors, 1, i);
 			errors += e;
 		}
-		if (errors) printf("Encountered %d errors\n", errors);
-		else printf("Success\n");
 	}
 
 	shmem_finalize();
+	if(me == 0)
+	{
+		if (errors) printf("Encountered %d errors\n", errors);
+		else printf("Success\n");
+	}
 	return (errors == 0) ? 0 : 1;
 }
