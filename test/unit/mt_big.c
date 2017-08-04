@@ -6,11 +6,12 @@
 #include <pthread_barrier.h>
 #include <shmem.h>
 #include <shmemx.h>
+#include <unistd.h>
 
 #define T 2
-#define BIG_BUFF_SIZE 445000000
+#define BIG_BUFF_SIZE 2000000
 
-int dest[BIG_BUFF_SIZE] = { 0 };
+int dest[BIG_BUFF_SIZE] = {0};
 
 int me, npes;
 int errors = 0;
@@ -29,27 +30,29 @@ static void * thread_main(void *arg)
 	{
 		printf("PE0, thread 1 starting large put\n");
 		shmem_int_put(dest, dest, BIG_BUFF_SIZE, 1);
-		shmem_quiet();
 	}
-	else if (tid == 1)
+	pthread_barrier_wait(&fencebar);
+	if (tid == 1)
 	{
-		shmem_int_put(&smallDest, &val, 1, 1);
+		for(i = 0; i<1000; i++)
+		{
+			shmem_int_put(&smallDest, &val, 1, 1);
+		}
 		printf("PE0, thread 2 starting small put\n");
 	}
-
-
-	if(tid == 0)
+	else if(tid == 0)
 	{
+		shmem_quiet();
 		int z = 1;
 		shmem_int_put(&done,&z,1,1);
 	}
 	pthread_barrier_wait(&fencebar);
 
 	return NULL;
-
-
 }
 int main(int argc, char **argv) {
+
+	//SMA_DEBUG = 1;
 	int tl, i;
 	pthread_t threads[T];
 	int       t_arg[T];
@@ -65,6 +68,8 @@ int main(int argc, char **argv) {
 
 	me = shmem_my_pe();
 	npes = shmem_n_pes();
+
+	//dest = (int*) shmem_malloc(BIG_BUFF_SIZE);	
 
 	pthread_barrier_init(&fencebar, NULL, T);
 
@@ -103,6 +108,7 @@ int main(int argc, char **argv) {
 			if(dest[i] != i)
 			{
 				errors++;
+				printf("!!\n");
 			}
 		}
 	}
@@ -111,13 +117,13 @@ int main(int argc, char **argv) {
 
 	if (me == 0) 
 	{
-		printf("Finalizing....");
-		for(i = 1; i<npes; i++)
-		{
-			int e = 0;
-			shmem_int_get(&e, &errors, 1, i);
-			errors += e;
-		}
+		// printf("Finalizing....");
+		// for(i = 1; i<npes; i++)
+		// {
+		// 	int e = 0;
+		// 	shmem_int_get(&e, &errors, 1, i);
+		// 	errors += e;
+		// }
 		if (errors) printf("Encountered %d errors\n", errors);
 		else printf("Success\n");
 	}
