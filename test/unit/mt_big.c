@@ -8,7 +8,7 @@
 #include <shmemx.h>
 
 #define T 2
-#define BIG_BUFF_SIZE 500000000
+#define BIG_BUFF_SIZE 445000000
 
 int dest[BIG_BUFF_SIZE] = { 0 };
 
@@ -29,6 +29,7 @@ static void * thread_main(void *arg)
 	{
 		printf("PE0, thread 1 starting large put\n");
 		shmem_int_put(dest, dest, BIG_BUFF_SIZE, 1);
+		shmem_quiet();
 	}
 	else if (tid == 1)
 	{
@@ -39,7 +40,6 @@ static void * thread_main(void *arg)
 
 	if(tid == 0)
 	{
-		shmem_quiet();
 		int z = 1;
 		shmem_int_put(&done,&z,1,1);
 	}
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 
 	if (me == 0) 
 	{
-		printf("Starting...\n");
+		printf("Starting on size of %i...\n", BIG_BUFF_SIZE);
 		
 		for(i = 0; i< BIG_BUFF_SIZE; i++)
 		{
