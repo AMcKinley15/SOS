@@ -27,22 +27,27 @@ static void * thread_main(void *arg)
 
 	val = 7;
 	if(tid == 0)
-	{
-		printf("PE0, thread 1 starting large put\n");
+	{	
+		//usleep(100);
+		//printf("PE0, thread 1 starting large put\n");
 		shmem_int_put(dest, dest, BIG_BUFF_SIZE, 1);
 	}
-	pthread_barrier_wait(&fencebar);
-	if (tid == 1)
+	// pthread_barrier_wait(&fencebar);
+	// if(tid == 1) shmem_fence();
+	//pthread_barrier_wait(&fencebar);
+	if (tid == 1)	
 	{
-		for(i = 0; i<1000; i++)
-		{
-			shmem_int_put(&smallDest, &val, 1, 1);
-		}
-		printf("PE0, thread 2 starting small put\n");
+		//usleep(100);
+		shmem_int_put(&smallDest, &val, 1, 1); //this happens 100% after the big put ??
+		//printf("PE0, thread 2 starting small put\n");
 	}
-	else if(tid == 0)
+	pthread_barrier_wait(&fencebar);
+	if(tid == 0)
 	{
 		shmem_quiet();
+
+		dest[BIG_BUFF_SIZE-1] = -1;
+		
 		int z = 1;
 		shmem_int_put(&done,&z,1,1);
 	}
@@ -69,6 +74,9 @@ int main(int argc, char **argv) {
 	me = shmem_my_pe();
 	npes = shmem_n_pes();
 
+	int debug = 0;
+	printf("id == %i\n",getpid());
+	while(debug == 1);
 	//dest = (int*) shmem_malloc(BIG_BUFF_SIZE);	
 
 	pthread_barrier_init(&fencebar, NULL, T);
@@ -81,8 +89,7 @@ int main(int argc, char **argv) {
 		{
 			dest[i] = i;
 		}
-		printf("Dest initialized to 1 by Pe 0 \n");
-
+		//printf("Dest initialized to 1 by Pe 0 \n");
 		for (i = 0; i < T; i++) {
 			int err;
 			t_arg[i] = i;
@@ -98,38 +105,38 @@ int main(int argc, char **argv) {
 	}
 	else
 	{
-		printf("PE 1 waiting for done...\n");
+		//printf("PE 1 waiting for done...\n");
 		
 		shmem_int_wait_until(&done, SHMEM_CMP_EQ, 1);
 
-		printf("PE 1 found done, checking dest\n");
-		for(i = 0; i<BIG_BUFF_SIZE; i++)
+		int temp = 0;
+
+		//shmem_int_put_nbi(&dest[0], &temp, 1, 0);
+
+		//printf("PE 1 found done, checking dest\n");
+		for(i = BIG_BUFF_SIZE-1; i>=0; i--)
 		{
 			if(dest[i] != i)
 			{
-				errors++;
-				printf("!!\n");
+				shmem_int_add(&errors, 1, 0);
+				printf("%i: %i!\n",i, dest[i]);
+				printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 			}
 		}
 	}
 
+	shmem_barrier_all();
 	pthread_barrier_destroy(&fencebar);
 
 	if (me == 0) 
 	{
-		// printf("Finalizing....");
-		// for(i = 1; i<npes; i++)
-		// {
-		// 	int e = 0;
-		// 	shmem_int_get(&e, &errors, 1, i);
-		// 	errors += e;
-		// }
-		if (errors) printf("Encountered %d errors\n", errors);
+		printf("Finalizing... ");
+		if (errors) printf("Encountered %d error(s)!\n", errors);
 		else printf("Success\n");
 	}
 
 	shmem_finalize();
 
-	if(me == 0)printf("Done \n");
+	if(me == 0)printf("Done! \n");
 	return (errors == 0) ? 0 : 1;
 }

@@ -133,6 +133,15 @@ shmem_internal_put_wait(long *completion)
     /* on-node is always blocking, so this is a no-op for them */
 }
 
+static inline
+void
+shmem_internal_put_wait_sleep(long *completion)
+{
+    usleep(100);
+    shmem_transport_put_wait(completion);
+    /* on-node is always blocking, so this is a no-op for them */
+}
+
 
 static inline
 void

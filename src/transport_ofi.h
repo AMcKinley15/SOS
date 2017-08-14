@@ -255,8 +255,8 @@ void shmem_transport_ofi_drain_cq(void)
             else {
                 RAISE_ERROR_STR("Unrecognized completion object");
             }
-            printf("HI\n");
             __sync_fetch_and_sub(&shmem_transport_ofi_pending_cq_count,1);
+            //shmem_transport_ofi_pending_cq_count--;
 
         }
 
@@ -292,14 +292,13 @@ void shmem_transport_put_quiet(void)
     while (shmem_transport_ofi_pending_cq_count) {
         shmem_transport_ofi_drain_cq();
     }
-    int temp = shmem_transport_ofi_pending_put_counter;
     int me = shmem_my_pe();
     /* wait for put counter to meet outstanding count value */
 #ifdef ENABLE_COMPLETION_POLLING
     uint64_t success, fail;
 
     printf("Me = %i, Temp = %i\n", me, shmem_transport_ofi_pending_put_counter);
-    
+
     do {
 
         success = fi_cntr_read(shmem_transport_ofi_put_cntrfd);
@@ -313,9 +312,10 @@ void shmem_transport_put_quiet(void)
             fi_cq_readerr(shmem_transport_ofi_put_nb_cqfd, (void *)&e, 0);
             OFI_CQ_ERROR(shmem_transport_ofi_put_nb_cqfd, &e);
         }
-    } while (success < temp);
+    } while (success < shmem_transport_ofi_put_cntrfd);
 #else
     int ret = fi_cntr_wait(shmem_transport_ofi_put_cntrfd, shmem_transport_ofi_pending_put_counter, -1);
+    printf("Me = %i, counter = %i, ret = %i\n", me, shmem_transport_ofi_pending_put_counter, ret);
     if (ret) {
         struct fi_cq_err_entry e = {0};
         fi_cq_readerr(shmem_transport_ofi_put_nb_cqfd, (void *)&e, 0);
@@ -394,6 +394,7 @@ void shmem_transport_put_small(void *target, const void *source, size_t len,
     /* automatically get local completion but need remote completion for
      * fence/quiet*/
     __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter, 1);
+    //shmem_transport_ofi_pending_put_counter++;
 }
 
 static inline
@@ -427,7 +428,7 @@ void shmem_transport_ofi_put_large(void *target, const void *source,
         } while (try_again(ret,&polled));
 
        __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter, 1);
-
+        //shmem_transport_ofi_pending_put_counter++;
         frag_source += frag_len;
         frag_target += frag_len;
     }
@@ -522,6 +523,7 @@ void shmem_transport_get(void *target, const void *source, size_t len, int pe)
         } while (try_again(ret,&polled));
 
         __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
+        //shmem_transport_ofi_pending_put_counter++;
     }
     else {
         uint8_t *frag_target = (uint8_t *) target;
@@ -541,6 +543,7 @@ void shmem_transport_get(void *target, const void *source, size_t len, int pe)
             } while (try_again(ret,&polled));
 
             __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
+            //shmem_transport_ofi_pending_put_counter++;
 
             frag_source += frag_len;
             frag_target += frag_len;
@@ -611,6 +614,7 @@ void shmem_transport_swap(void *target, const void *source, void *dest,
     } while(try_again(ret,&polled));
 
     __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
+    //shmem_transport_ofi_pending_put_counter++;
 }
 
 
@@ -647,6 +651,7 @@ void shmem_transport_cswap(void *target, const void *source, void *dest,
     } while(try_again(ret,&polled));
 
     __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
+    //shmem_transport_ofi_pending_put_counter++;
 }
 
 
@@ -683,6 +688,7 @@ void shmem_transport_mswap(void *target, const void *source, void *dest,
     } while(try_again(ret,&polled));
 
     __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
+    //shmem_transport_ofi_pending_put_counter++;
 }
 
 
@@ -712,6 +718,7 @@ void shmem_transport_atomic_small(void *target, const void *source, size_t len,
     } while(try_again(ret,&polled));
 
    __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter, 1);
+   // shmem_transport_ofi_pending_put_counter++;
 }
 
 
@@ -741,6 +748,7 @@ void shmem_transport_atomic_set(void *target, const void *source, size_t len,
     } while (try_again(ret, &polled));
 
     __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter, 1);
+    //shmem_transport_ofi_pending_put_counter++;
 }
 
 
@@ -774,6 +782,7 @@ void shmem_transport_atomic_fetch(void *target, const void *source, size_t len,
     } while (try_again(ret, &polled));
 
     __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
+    //shmem_transport_ofi_pending_put_counter++;
 }
 
 
@@ -820,6 +829,7 @@ void shmem_transport_atomic_nb(void *target, const void *source,
         } while(try_again(ret,&polled));
 
         __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter, 1);
+        //shmem_transport_ofi_pending_put_counter++;
 
     } else if (full_len <=
                MIN(shmem_transport_ofi_bounce_buffer_size, max_atomic_size)) {
@@ -842,6 +852,7 @@ void shmem_transport_atomic_nb(void *target, const void *source,
         } while(try_again(ret,&polled));
 
         __sync_fetch_and_add(&shmem_transport_ofi_pending_cq_count,1);
+        //shmem_transport_ofi_pending_put_counter++;
 
     } else {
         size_t sent = 0;
@@ -867,6 +878,7 @@ void shmem_transport_atomic_nb(void *target, const void *source,
             } while(try_again(ret,&polled));
 
             __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter, 1);
+            //shmem_transport_ofi_pending_put_counter++;
             sent += chunksize;
         }
     }
@@ -904,6 +916,7 @@ void shmem_transport_fetch_atomic(void *target, const void *source, void *dest,
     } while(try_again(ret,&polled));
 
     __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
+    //shmem_transport_ofi_pending_put_counter++;
 }
 
 
