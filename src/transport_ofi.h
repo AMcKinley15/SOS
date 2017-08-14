@@ -534,7 +534,7 @@ void shmem_transport_get(void *target, const void *source, size_t len, int pe)
                               key, NULL);
             } while (try_again(ret,&polled));
 
-            __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter,1);
+            __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
             frag_source += frag_len;
             frag_target += frag_len;
         }
@@ -603,7 +603,7 @@ void shmem_transport_swap(void *target, const void *source, void *dest,
                               NULL);
     } while(try_again(ret,&polled));
 
-    __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter,1);
+    __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
 }
 
 
@@ -639,7 +639,7 @@ void shmem_transport_cswap(void *target, const void *source, void *dest,
                                 NULL);
     } while(try_again(ret,&polled));
 
-    __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter,1);
+    __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
 }
 
 
@@ -675,7 +675,7 @@ void shmem_transport_mswap(void *target, const void *source, void *dest,
                                 NULL);
     } while(try_again(ret,&polled));
 
-    __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter,1);
+    __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
 }
 
 
@@ -766,7 +766,7 @@ void shmem_transport_atomic_fetch(void *target, const void *source, size_t len,
                               NULL);
     } while (try_again(ret, &polled));
 
-    __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter,1);
+    __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
 }
 
 
@@ -894,7 +894,7 @@ void shmem_transport_fetch_atomic(void *target, const void *source, void *dest,
                               NULL);
     } while(try_again(ret,&polled));
 
-    __sync_fetch_and_add(&shmem_transport_ofi_pending_put_counter,1);
+    __sync_fetch_and_add(&shmem_transport_ofi_pending_get_counter,1);
 }
 
 
