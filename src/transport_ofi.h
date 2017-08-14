@@ -304,7 +304,9 @@ void shmem_transport_put_quiet(void)
         success = fi_cntr_read(shmem_transport_ofi_put_cntrfd);
         fail = fi_cntr_readerr(shmem_transport_ofi_put_cntrfd);
 
-        if (success <  shmem_transport_ofi_pending_put_counter && fail == 0) {
+        uint65_t temp = shmem_transport_ofi_pending_put_counter;
+
+        if (success <  temp && fail == 0) {
             SPINLOCK_BODY();
         }
         else if (fail) {
