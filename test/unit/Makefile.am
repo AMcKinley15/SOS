@@ -149,6 +149,11 @@ mt_a2a_LDFLAGS = $(PTHREAD_LIBS)
 mt_a2a_CFLAGS = $(PTHREAD_CFLAGS)
 mt_a2a_LDADD = $(LDADD) $(PTHREAD_CFLAGS)
 
+mt_puts_SOURCES = mt_puts.c pthread_barrier.h
+mt_puts_LDFLAGS = $(PTHREAD_LIBS)
+mt_puts_CFLAGS = $(PTHREAD_CFLAGS)
+mt_puts_LDADD = $(LDADD) $(PTHREAD_CFLAGS)
+
 # Fortran Tests (only .c tests use automatic _SOURCES)
 hello_f_SOURCES = hello_f.f90
 complex_reductions_f_SOURCES = complex_reductions_f.f90

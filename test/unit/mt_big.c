@@ -137,6 +137,6 @@ int main(int argc, char **argv) {
 
 	shmem_finalize();
 
-	if(me == 0)printf("Done! \n");
+	if(me == 0)printf("Done \n");
 	return (errors == 0) ? 0 : 1;
 }
