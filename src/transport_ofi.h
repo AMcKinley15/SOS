@@ -299,7 +299,7 @@ void shmem_transport_put_quiet(void)
 
         success = fi_cntr_read(shmem_transport_ofi_put_cntrfd);
         fail = fi_cntr_readerr(shmem_transport_ofi_put_cntrfd);
-
+        //TODO: Test on cluster: See if a Temp variable for shmem_transport_ofi_pending_put_counter changes execution
         if (success <  shmem_transport_ofi_pending_put_counter && fail == 0) {
             SPINLOCK_BODY();
         }

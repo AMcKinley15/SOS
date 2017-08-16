@@ -123,7 +123,7 @@ endif
 if HAVE_PTHREADS
 check_PROGRAMS += \
     mt_a2a \
-    mt_puts
+    mt_big
 endif
 
 TESTS = $(check_PROGRAMS)
@@ -149,10 +149,10 @@ mt_a2a_LDFLAGS = $(PTHREAD_LIBS)
 mt_a2a_CFLAGS = $(PTHREAD_CFLAGS)
 mt_a2a_LDADD = $(LDADD) $(PTHREAD_CFLAGS)
 
-mt_puts_SOURCES = mt_puts.c pthread_barrier.h
-mt_puts_LDFLAGS = $(PTHREAD_LIBS)
-mt_puts_CFLAGS = $(PTHREAD_CFLAGS)
-mt_puts_LDADD = $(LDADD) $(PTHREAD_CFLAGS)
+mt_big_SOURCES = mt_big.c pthread_barrier.h
+mt_big_LDFLAGS = $(PTHREAD_LIBS)
+mt_big_CFLAGS = $(PTHREAD_CFLAGS)
+mt_big_LDADD = $(LDADD) $(PTHREAD_CFLAGS)
 
 # Fortran Tests (only .c tests use automatic _SOURCES)
 hello_f_SOURCES = hello_f.f90
