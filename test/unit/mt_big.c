@@ -100,6 +100,13 @@ int main(int argc, char **argv)
 	me = shmem_my_pe();
 	npes = shmem_n_pes();
 
+	if (npes == 1) 
+	{
+        fprintf(stderr, "ERR - Requires > 1 PEs\n");
+        shmem_finalize();
+        return 0;
+    }
+
 	pthread_barrier_init(&fencebar, NULL, T);
 
 	if (me == 0) 
@@ -138,7 +145,8 @@ int main(int argc, char **argv)
 			if(dest[i] != i)
 			{
 				shmem_int_add(&errors, 1, 0);
-				printf("%i: %i!\n",i, dest[i]);			}
+				printf("%i: %i!\n",i, dest[i]);			
+			}
 		}
 	}
 
